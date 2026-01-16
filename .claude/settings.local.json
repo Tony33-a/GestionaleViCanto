@@ -16,7 +16,10 @@
       "Bash(dir:*)",
       "Bash(curl:*)",
       "Bash(timeout:*)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(git push:*)",
+      "Bash(git remote:*)",
+      "Bash(git add:*)"
     ]
   }
 }

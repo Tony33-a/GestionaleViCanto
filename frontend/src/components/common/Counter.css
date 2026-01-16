@@ -16,18 +16,18 @@
   align-items: center;
   gap: 0;
   background: var(--color-bg, #f5f7fa);
-  border-radius: 10px;
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .counter-btn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border: none;
   background: transparent;
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--color-primary, #2563eb);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--color-primary, #3b82f6);
   cursor: pointer;
   transition: all 0.15s;
   display: flex;
@@ -36,7 +36,7 @@
 }
 
 .counter-btn:hover:not(:disabled) {
-  background: var(--color-primary, #2563eb);
+  background: var(--color-primary, #3b82f6);
   color: white;
 }
 
@@ -47,36 +47,47 @@
 .counter-btn:disabled {
   color: var(--color-text-muted, #9ca3af);
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .counter-value {
-  min-width: 48px;
+  min-width: 44px;
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text, #1f2937);
   padding: 0 4px;
 }
 
 /* Sizes */
+.counter-small .counter-controls {
+  background: #252536;
+}
+
 .counter-small .counter-btn {
-  width: 36px;
-  height: 36px;
-  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.counter-small .counter-btn:hover:not(:disabled) {
+  background: #3b82f6;
 }
 
 .counter-small .counter-value {
-  min-width: 36px;
-  font-size: 15px;
+  min-width: 32px;
+  font-size: 14px;
+  color: #ffffff;
 }
 
 .counter-large .counter-btn {
-  width: 56px;
-  height: 56px;
-  font-size: 26px;
+  width: 52px;
+  height: 52px;
+  font-size: 24px;
 }
 
 .counter-large .counter-value {
-  min-width: 60px;
-  font-size: 22px;
+  min-width: 56px;
+  font-size: 20px;
 }

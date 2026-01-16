@@ -3,13 +3,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 16px;
+  padding: 24px 16px;
   border-radius: 12px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   transition: all 0.2s ease;
   min-height: 140px;
-  gap: 6px;
+  gap: 8px;
+  background: #1e1e2e;
 }
 
 .table-card:active {
@@ -18,74 +19,86 @@
 
 /* Stato: Libero */
 .table-card-free {
-  background: #374151;
-  color: #9ca3af;
+  background: #252536;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .table-card-free:hover {
-  background: #4b5563;
+  background: #2a2a3d;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .table-card-free .table-number {
-  color: #d1d5db;
+  color: #6b7280;
 }
 
 .table-card-free .table-status-label {
-  color: #9ca3af;
+  color: #4b5563;
 }
 
 /* Stato: In Attesa (Pending) */
 .table-card-pending {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
+  background: #252536;
+  border-color: #f59e0b;
+  border-width: 2px;
 }
 
 .table-card-pending:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
+  background: #2a2a3d;
+}
+
+.table-card-pending .table-number {
+  color: #ffffff;
 }
 
 .table-card-pending .table-status-label {
-  color: #fbbf24;
-  font-weight: 600;
+  color: #f59e0b;
 }
 
 /* Stato: Occupato */
 .table-card-occupied {
-  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-  color: white;
+  background: #252536;
+  border-color: #3b82f6;
+  border-width: 2px;
 }
 
 .table-card-occupied:hover {
-  background: linear-gradient(135deg, #1d4ed8 0%, #60a5fa 100%);
+  background: #2a2a3d;
+}
+
+.table-card-occupied .table-number {
+  color: #ffffff;
 }
 
 .table-card-occupied .table-status-label {
-  color: #ef4444;
-  font-weight: 600;
+  color: #3b82f6;
 }
 
 /* Elementi interni */
 .table-number {
-  font-size: 42px;
-  font-weight: 700;
+  font-size: 48px;
+  font-weight: 600;
   line-height: 1;
+  letter-spacing: -2px;
 }
 
 .table-status-label {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin-top: 4px;
 }
 
 .table-covers {
-  font-size: 14px;
-  font-weight: 500;
-  opacity: 0.9;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .table-total {
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-top: 4px;
 }
