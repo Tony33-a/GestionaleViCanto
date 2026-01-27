@@ -17,6 +17,9 @@ const config = {
   // Modalità mock (per testing senza stampante fisica)
   mockMode: process.argv.includes('--mock') || process.env.PRINT_MOCK_MODE === 'true',
 
+  // Modalità PDF (genera PDF invece di stampare)
+  pdfMode: process.argv.includes('--pdf') || process.env.PRINT_PDF_MODE === 'true',
+
   // Polling interval (ms)
   pollInterval: parseInt(process.env.PRINT_POLL_INTERVAL) || 500,
 
@@ -37,12 +40,18 @@ const config = {
   }
 };
 
+// Determina modalità
+let modeLabel = 'PRODUCTION';
+if (config.pdfMode) modeLabel = 'PDF (genera file PDF)';
+else if (config.mockMode) modeLabel = 'MOCK (testing console)';
+
 console.log('\n' + '='.repeat(70));
 console.log('🖨️  VICANTO PRINT SERVER');
 console.log('='.repeat(70));
-console.log(`Modalità: ${config.mockMode ? 'MOCK (testing)' : 'PRODUCTION'}`);
+console.log(`Modalità: ${modeLabel}`);
 console.log(`Polling: ${config.pollInterval}ms`);
-console.log(`Stampante: ${config.printerConfig.interface}`);
+if (!config.pdfMode) console.log(`Stampante: ${config.printerConfig.interface}`);
+if (config.pdfMode) console.log(`Output PDF: backend/prints/`);
 console.log(`Socket.IO: ${config.socketURL}`);
 console.log('='.repeat(70) + '\n');
 

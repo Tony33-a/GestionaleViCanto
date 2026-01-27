@@ -3,102 +3,139 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 16px 12px;
+  border-radius: 14px;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  min-height: 140px;
-  gap: 8px;
-  background: #1e1e2e;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 105px;
+  gap: 5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.table-card:hover {
+  transform: translateY(-2px);
+}
+
+.table-card:hover::before {
+  opacity: 1;
 }
 
 .table-card:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-/* Stato: Libero */
+/* Stato: Libero - VERDE OLIVA/SAGE */
 .table-card-free {
-  background: #252536;
-  border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(145deg, #f5f7f4 0%, #e8ede5 100%);
+  box-shadow: 0 1px 4px rgba(101, 127, 92, 0.1);
+}
+
+.table-card-free::before {
+  background: linear-gradient(90deg, #6b8e5e, #5a7a4f);
 }
 
 .table-card-free:hover {
-  background: #2a2a3d;
-  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 12px rgba(101, 127, 92, 0.18);
 }
 
 .table-card-free .table-number {
-  color: #6b7280;
+  color: #4a6741;
 }
 
 .table-card-free .table-status-label {
-  color: #4b5563;
+  color: #5a7a4f;
+  background: rgba(101, 127, 92, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
-/* Stato: In Attesa (Pending) */
+/* Stato: In Attesa (Pending) - TERRACOTTA/AMBRA */
 .table-card-pending {
-  background: #252536;
-  border-color: #f59e0b;
-  border-width: 2px;
+  background: linear-gradient(145deg, #fdf8f3 0%, #f5ebe0 100%);
+  box-shadow: 0 1px 4px rgba(183, 129, 80, 0.1);
+}
+
+.table-card-pending::before {
+  background: linear-gradient(90deg, #c9915a, #b07842);
 }
 
 .table-card-pending:hover {
-  background: #2a2a3d;
+  box-shadow: 0 4px 12px rgba(183, 129, 80, 0.18);
 }
 
 .table-card-pending .table-number {
-  color: #ffffff;
+  color: #96612f;
 }
 
 .table-card-pending .table-status-label {
-  color: #f59e0b;
+  color: #b07842;
+  background: rgba(183, 129, 80, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
-/* Stato: Occupato */
+/* Stato: Occupato - BORDEAUX/MARSALA */
 .table-card-occupied {
-  background: #252536;
-  border-color: #3b82f6;
-  border-width: 2px;
+  background: linear-gradient(145deg, #faf5f5 0%, #f2e5e5 100%);
+  box-shadow: 0 1px 4px rgba(140, 70, 70, 0.1);
+}
+
+.table-card-occupied::before {
+  background: linear-gradient(90deg, #a65d5d, #8c4646);
 }
 
 .table-card-occupied:hover {
-  background: #2a2a3d;
+  box-shadow: 0 4px 12px rgba(140, 70, 70, 0.18);
 }
 
 .table-card-occupied .table-number {
-  color: #ffffff;
+  color: #733939;
 }
 
 .table-card-occupied .table-status-label {
-  color: #3b82f6;
+  color: #8c4646;
+  background: rgba(140, 70, 70, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
 /* Elementi interni */
 .table-number {
-  font-size: 48px;
-  font-weight: 600;
+  font-size: 36px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -2px;
 }
 
 .table-status-label {
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 9px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-top: 4px;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
 }
 
 .table-covers {
-  font-size: 13px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
 }
 
 .table-total {
-  font-size: 18px;
-  font-weight: 600;
-  color: #ffffff;
-  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-top: 2px;
 }

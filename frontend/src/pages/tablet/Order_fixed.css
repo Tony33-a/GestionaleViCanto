@@ -1,0 +1,186 @@
+/* Stili aggiuntivi per Order_fixed.jsx */
+
+/* Badge per items nuovi */
+.new-item-badge {
+  background-color: #28a745;
+  color: white;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+/* Stile items esistenti vs nuovi */
+.existing-item {
+  background-color: #f8f9fa;
+  border-left: 4px solid #6c757d;
+  opacity: 0.8;
+}
+
+.new-item {
+  background-color: #e8f5e8;
+  border-left: 4px solid #28a745;
+  font-weight: 500;
+}
+
+/* Disabilita rimozione items esistenti */
+.existing-item .remove-item-btn {
+  display: none;
+}
+
+/* Stato ordine nell'header */
+.order-status {
+  background-color: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.order-status:empty {
+  display: none;
+}
+
+/* Modal conferma - distinzione items */
+.confirm-item.existing {
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.confirm-item.new {
+  color: #28a745;
+  font-weight: 500;
+}
+
+/* Pulsanti azione migliorati */
+.order-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.order-actions button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.order-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+/* Header migliorato */
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.table-info h2 {
+  margin: 0;
+  color: #495057;
+}
+
+.table-status {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+}
+
+.status-free {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.status-pending {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.status-occupied {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.covers-section {
+  text-align: right;
+}
+
+.covers-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.covers-control label {
+  font-weight: bold;
+  color: #495057;
+}
+
+/* Loading state */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .order-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .covers-section {
+    text-align: center;
+  }
+  
+  .order-actions {
+    flex-direction: column;
+  }
+  
+  .order-actions button {
+    width: 100%;
+  }
+}

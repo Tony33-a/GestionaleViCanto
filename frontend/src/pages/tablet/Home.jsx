@@ -4,12 +4,15 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import tablesService from '../../services/tablesService'
 import { socketService } from '../../services/socket'
 import TableCard from '../../components/tablet/TableCard'
+import { useAuthStore } from '../../stores/authStore'
 import './Home.css'
 
 function TabletHome() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [activeTab, setActiveTab] = useState('tavoli')
+  const [lockError, setLockError] = useState(null)
+  const { user } = useAuthStore()
 
   // Fetch tavoli
   const { data: tables = [], isLoading, error } = useQuery({
@@ -54,9 +57,31 @@ function TabletHome() {
     }
   }, [queryClient])
 
-  const handleTableClick = (table) => {
-    // Naviga a pagina nuovo ordine con tableId
-    navigate(`/tablet/order/${table.id}`)
+  const handleTableClick = async (table) => {
+    setLockError(null)
+    
+    // Se user non è disponibile, naviga direttamente
+    if (!user?.id) {
+      navigate(`/tablet/order/${table.id}`)
+      return
+    }
+    
+    try {
+      // Tenta di acquisire il lock sul tavolo
+      await tablesService.lock(table.id, user.id)
+      // Se il lock ha successo, naviga alla pagina ordine
+      navigate(`/tablet/order/${table.id}`)
+    } catch (error) {
+      // Se errore 423 = tavolo in uso, mostra messaggio
+      if (error.message?.includes('in uso')) {
+        setLockError(`Tavolo ${table.number} attualmente in uso da un altro utente`)
+        setTimeout(() => setLockError(null), 3000)
+      } else {
+        // Altri errori (es. API non disponibile) - naviga comunque
+        console.warn('Lock fallito, navigo comunque:', error.message)
+        navigate(`/tablet/order/${table.id}`)
+      }
+    }
   }
 
   if (isLoading) {
@@ -100,6 +125,13 @@ function TabletHome() {
           ASPORTO
         </button>
       </div>
+
+      {/* Alert errore lock */}
+      {lockError && (
+        <div className="lock-error-alert">
+          {lockError}
+        </div>
+      )}
 
       {/* Alert per comande in attesa */}
       {tables.some(t => t.status === 'pending') && (

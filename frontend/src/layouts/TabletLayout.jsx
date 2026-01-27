@@ -4,14 +4,15 @@ import { socketService } from '../services/socket'
 import { useEffect } from 'react'
 import TabletHome from '../pages/tablet/Home'
 import TabletOrder from '../pages/tablet/Order'
+import CategoryProducts from '../pages/tablet/CategoryProducts'
 import '../styles/TabletLayout.css'
 
 function TabletLayout() {
   const { user, token, logout } = useAuthStore()
   const location = useLocation()
 
-  // Determina se siamo nella pagina ordine (nasconde header)
-  const isOrderPage = location.pathname.includes('/order/')
+  // Determina se siamo in una pagina full-screen (nasconde header)
+  const isOrderPage = location.pathname.includes('/order/') || location.pathname.includes('/category/')
 
   useEffect(() => {
     // Connetti Socket.IO per tablet
@@ -52,6 +53,7 @@ function TabletLayout() {
           <Route path="/" element={<Navigate to="/tablet/home" replace />} />
           <Route path="/home" element={<TabletHome />} />
           <Route path="/order/:tableId" element={<TabletOrder />} />
+          <Route path="/category/:categoryCode" element={<CategoryProducts />} />
         </Routes>
       </main>
     </div>

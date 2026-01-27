@@ -83,7 +83,12 @@ router.get('/health/all', async (req, res) => {
 // API routes - Vicanto POS Gelateria
 router.use('/auth', require('./auth'));
 router.use('/tables', require('./tables'));
+router.use('/tables', require('./tableLocks')); // Lock management
+router.use('/tables', require('./tableFlows')); // Flow management
 router.use('/menu', require('./menu'));
 router.use('/orders', require('./orders'));
+router.use('/reports', require('./reports')); // Dashboard e report admin
+router.use('/users', require('./users')); // Gestione utenti/camerieri
+router.use('/product-supplements', require('./productSupplements')); // Associazioni prodotto-supplemento
 
 module.exports = router;

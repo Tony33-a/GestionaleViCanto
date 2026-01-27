@@ -1,11 +1,52 @@
 /**
  * Socket.IO Event Emitters
  * Funzioni helper per emettere eventi ai client connessi
- * Con error handling robusto per prevenire fallimenti silenziosi
+ * Con error handling robusto e batching per ottimizzare re-render
  */
 
+const EventBatcher = require('./eventBatcher');
+
+// Istanza globale del batcher (inizializzata in socketHandler)
+let eventBatcher = null;
+
 /**
- * Emit table update event
+ * Inizializza il batcher con istanza IO
+ * @param {Object} io - Socket.IO instance
+ */
+const initializeEventBatcher = (io) => {
+  if (!eventBatcher) {
+    eventBatcher = new EventBatcher(io);
+  }
+};
+
+/**
+ * Emit batched events per operazioni ordine+tavolo
+ * @param {string} operation - Tipo operazione (create, send, complete, cancel)
+ * @param {Object} order - Order data
+ * @param {Object} table - Table data (opzionale)
+ */
+const emitOrderTableBatch = (operation, order, table = null) => {
+  if (!eventBatcher) {
+    console.warn('⚠️ EventBatcher not initialized - falling back to immediate emit');
+    return;
+  }
+
+  const batchId = `order-${order.id}-${Date.now()}`;
+  const rooms = ['monitor', 'tablets'];
+
+  rooms.forEach(room => {
+    // Evento ordine
+    eventBatcher.addEvent(batchId, `order:${operation}`, room, order);
+    
+    // Evento tavolo (se presente)
+    if (table) {
+      eventBatcher.addEvent(batchId, 'table:updated', room, table);
+    }
+  });
+};
+
+/**
+ * Emit table update event immediato (per aggiornamenti isolati)
  * @param {Object} io - Socket.IO instance
  * @param {Object} table - Updated table data
  * @returns {boolean} - True se emit riuscito, false altrimenti
@@ -17,13 +58,19 @@ const emitTableUpdate = (io, table) => {
       return false;
     }
 
-    io.to('monitor').emit('table:updated', table);
-    io.to('tablets').emit('table:updated', table);
+    // Usa immediate emit per aggiornamenti tavolo isolati
+    if (eventBatcher) {
+      eventBatcher.emitImmediate('table:updated', 'monitor', table);
+      eventBatcher.emitImmediate('table:updated', 'tablets', table);
+    } else {
+      io.to('monitor').emit('table:updated', table);
+      io.to('tablets').emit('table:updated', table);
+    }
+    
     console.log(`📤 Event emitted: table:updated (Table #${table.number})`);
     return true;
   } catch (error) {
     console.error(`❌ Failed to emit table:updated (Table #${table.number}):`, error.message);
-    // TODO: Send to monitoring system (Sentry, etc.)
     return false;
   }
 };
@@ -212,6 +259,38 @@ const emitMenuUpdate = (io, menuData) => {
   }
 };
 
+/**
+ * Emit order items added event
+ * @param {Object} io - Socket.IO instance
+ * @param {Object} order - Updated order data
+ * @param {Object} table - Updated table data
+ * @returns {boolean} - True se emit riuscito, false altrimenti
+ */
+const emitOrderItemsAdded = (io, order, table) => {
+  try {
+    if (!io) {
+      console.warn('⚠️  Socket.IO not available - cannot emit order:items_added');
+      return false;
+    }
+
+    // Evento specifico per items aggiunti
+    io.to('monitor').emit('order:items_added', { order, table });
+    io.to('tablets').emit('order:items_added', { order, table });
+    
+    // Evento standard di aggiornamento tavolo per compatibilità
+    if (table) {
+      io.to('monitor').emit('table:updated', table);
+      io.to('tablets').emit('table:updated', table);
+    }
+    
+    console.log(`📤 Event emitted: order:items_added (Order #${order.id}, Table #${table?.number})`);
+    return true;
+  } catch (error) {
+    console.error(`❌ Failed to emit order:items_added (Order #${order.id}):`, error.message);
+    return false;
+  }
+};
+
 module.exports = {
   emitTableUpdate,
   emitOrderNew,
@@ -219,6 +298,9 @@ module.exports = {
   emitOrderSent,
   emitOrderCompleted,
   emitOrderCancelled,
+  emitOrderTableBatch,
+  emitOrderItemsAdded,
+  initializeEventBatcher,
   emitPrintSuccess,
   emitPrintFailed,
   emitMenuUpdate

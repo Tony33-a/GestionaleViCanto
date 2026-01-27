@@ -22,19 +22,19 @@ class SocketService {
     })
 
     this.socket.on('connect', () => {
-      console.log('✅ Socket.IO connesso:', this.socket.id)
+      console.log('Socket.IO connesso:', this.socket.id)
     })
 
     this.socket.on('disconnect', (reason) => {
-      console.warn('⚠️ Socket.IO disconnesso:', reason)
+      console.warn('Socket.IO disconnesso:', reason)
     })
 
     this.socket.on('connect_error', (error) => {
-      console.error('❌ Errore connessione Socket.IO:', error.message)
+      console.error('Errore connessione Socket.IO:', error.message)
     })
 
     this.socket.on('reconnect', (attemptNumber) => {
-      console.log(`✅ Socket.IO riconnesso dopo ${attemptNumber} tentativi`)
+      console.log(`Socket.IO riconnesso dopo ${attemptNumber} tentativi`)
     })
 
     return this.socket
@@ -56,7 +56,7 @@ class SocketService {
     }
 
     this.socket.emit('join', { room })
-    console.log(`📱 Joined room: ${room}`)
+    console.log(`Joined room: ${room}`)
   }
 
   // Leave a room
@@ -64,7 +64,7 @@ class SocketService {
     if (!this.socket?.connected) return
 
     this.socket.emit('leave', { room })
-    console.log(`🚪 Left room: ${room}`)
+    console.log(`Left room: ${room}`)
   }
 
   // Subscribe to event

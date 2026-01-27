@@ -5,6 +5,8 @@ const db = require('../services/database');
  * Gestisce gli ordini della gelateria
  * Stati: pending, sent, completed, cancelled
  */
+const OrderCalculator = require('../services/orderCalculator');
+
 class Order {
   static tableName = 'orders';
 
@@ -39,79 +41,56 @@ class Order {
   }
 
   /**
-   * Trova ordine per ID con items (OTTIMIZZATO - Single Query con LEFT JOIN)
-   * Riduce N+1 queries a 1 singola query
+   * Trova ordine per ID con items (OTTIMIZZATO - json_agg PostgreSQL)
+   * Usa json_agg per raggruppare items a livello di query
    * @param {number} id
    * @param {Object} trx - Transazione Knex (opzionale)
    * @returns {Promise<Object|null>}
    */
   static async findById(id, trx = null) {
-    const dbContext = trx || db;
+    try {
+      const dbContext = trx || db;
 
-    // Single query con LEFT JOIN per evitare N+1
-    const rows = await dbContext(this.tableName)
-      .select(
-        'orders.*',
-        'tables.number as table_number',
-        'users.username as waiter_username',
-        'order_items.id as item_id',
-        'order_items.category as item_category',
-        'order_items.flavors as item_flavors',
-        'order_items.quantity as item_quantity',
-        'order_items.course as item_course',
-        'order_items.custom_note as item_custom_note',
-        'order_items.unit_price as item_unit_price',
-        'order_items.total_price as item_total_price',
-        'order_items.created_at as item_created_at'
-      )
-      .leftJoin('tables', 'orders.table_id', 'tables.id')
-      .leftJoin('users', 'orders.user_id', 'users.id')
-      .leftJoin('order_items', 'orders.id', 'order_items.order_id')
-      .where('orders.id', id)
-      .orderBy('order_items.course', 'asc')
-      .orderBy('order_items.created_at', 'asc');
-
-    if (rows.length === 0) return null;
-
-    // Costruisci oggetto order dalla prima row
-    const firstRow = rows[0];
-    const order = {
-      id: firstRow.id,
-      table_id: firstRow.table_id,
-      table_number: firstRow.table_number,
-      user_id: firstRow.user_id,
-      waiter_username: firstRow.waiter_username,
-      status: firstRow.status,
-      covers: firstRow.covers,
-      subtotal: firstRow.subtotal,
-      cover_charge: firstRow.cover_charge,
-      total: firstRow.total,
-      notes: firstRow.notes,
-      created_at: firstRow.created_at,
-      sent_at: firstRow.sent_at,
-      completed_at: firstRow.completed_at,
-      cancelled_at: firstRow.cancelled_at,
-      items: []
-    };
-
-    // Raggruppa items dalle rows
-    rows.forEach(row => {
-      if (row.item_id) {
-        order.items.push({
-          id: row.item_id,
-          category: row.item_category,
-          flavors: row.item_flavors,
-          quantity: row.item_quantity,
-          course: row.item_course,
-          custom_note: row.item_custom_note,
-          unit_price: row.item_unit_price,
-          total_price: row.item_total_price,
-          created_at: row.item_created_at
-        });
+      // Prima query: ottieni l'ordine base
+      let orderQuery = `SELECT 
+        orders.*,
+        tables.number as table_number,
+        users.username as waiter_username
+        FROM orders
+        LEFT JOIN tables ON orders.table_id = tables.id
+        LEFT JOIN users ON orders.user_id = users.id
+        WHERE orders.id = ?`;
+      
+      let order;
+      if (trx) {
+        order = await trx.raw(orderQuery, [id]);
+      } else {
+        order = await db.raw(orderQuery, [id]);
       }
-    });
+      
+      if (!order || !order.rows || order.rows.length === 0) {
+        return null;
+      }
+      
+      const orderData = order.rows[0];
 
-    return order;
+      // Seconda query: ottieni gli items
+      let itemsQuery = `SELECT * FROM order_items WHERE order_id = ? ORDER BY course ASC, created_at ASC`;
+      
+      let items;
+      if (trx) {
+        items = await trx.raw(itemsQuery, [id]);
+      } else {
+        items = await db.raw(itemsQuery, [id]);
+      }
+      
+      orderData.items = items && items.rows ? items.rows : [];
+
+      return orderData;
+    } catch (error) {
+      console.error('❌ [MODEL] findById error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -138,53 +117,63 @@ class Order {
    * @returns {Promise<Object>}
    */
   static async create(orderData, trx = null) {
+    console.log('🔍 [MODEL] Order.create - orderData:', JSON.stringify(orderData, null, 2));
+    
     const dbContext = trx || db;
-    const { items, ...orderFields } = orderData;
+    
+    // Estrai esplicitamente i campi invece di usare spread
+    const { table_id, user_id, covers, status, notes, items } = orderData;
 
-    // Calcola subtotal dai items
-    let subtotal = 0;
-    if (items && items.length > 0) {
-      subtotal = items.reduce((sum, item) => {
-        return sum + (item.quantity * item.unit_price);
-      }, 0);
-    }
+    console.log('🔍 [MODEL] Order.create - items:', items);
+    console.log('🔍 [MODEL] Order.create - items type:', typeof items);
+    console.log('🔍 [MODEL] Order.create - isArray:', Array.isArray(items));
 
-    // Calcola coperto (€1 per coperto)
-    const cover_charge = orderFields.covers * 1.00;
+    // Usa il servizio centralizzato per i calcoli
+    const totals = OrderCalculator.calculateTotals(
+      items || [], 
+      covers || 0, 
+      false // Backend non gestisce isAsporto - gestito dal frontend
+    );
 
-    // Totale
-    const total = subtotal + cover_charge;
+    console.log('🔍 [MODEL] Order.create - totals:', totals);
 
     // Crea ordine
-    const [order] = await dbContext(this.tableName)
+    const orderResult = await dbContext(this.tableName)
       .insert({
-        table_id: orderFields.table_id,
-        user_id: orderFields.user_id,
-        status: 'pending',
-        covers: orderFields.covers,
-        subtotal,
-        cover_charge,
-        total,
-        notes: orderFields.notes || null,
+        table_id: table_id,
+        user_id: user_id,
+        status: status || 'pending', // Permette status personalizzato
+        covers: covers,
+        subtotal: totals.subtotal,
+        cover_charge: totals.coverCharge,
+        total: totals.total,
+        notes: notes || null,
         created_at: dbContext.fn.now()
       })
       .returning('*');
 
-    // Inserisci items se presenti
+    // Estrai il primo elemento dall'array
+    const order = Array.isArray(orderResult) ? orderResult[0] : orderResult;
+
+    // Inserisci items
     if (items && items.length > 0) {
-      const orderItems = items.map(item => ({
+      const itemsToInsert = items.map(item => ({
         order_id: order.id,
-        category: item.category,
-        flavors: JSON.stringify(item.flavors), // Converte array a JSON
+        product_code: item.product_code || 'DEFAULT',
+        product_name: item.product_name || 'Prodotto',
+        category: item.category_code,
+        flavors: JSON.stringify(item.flavors || []),
         quantity: item.quantity,
-        course: item.course || 1,
+        course: item.course,
         custom_note: item.custom_note || null,
         unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
+        supplements: JSON.stringify(item.supplements || []),
+        supplements_total: item.supplements_total || 0,
+        total_price: OrderCalculator.calculateItemTotal(item),
         created_at: dbContext.fn.now()
       }));
 
-      await dbContext('order_items').insert(orderItems);
+      await dbContext('order_items').insert(itemsToInsert);
     }
 
     return order;
@@ -199,7 +188,7 @@ class Order {
   static async send(id, trx = null) {
     const dbContext = trx || db;
 
-    const [order] = await dbContext(this.tableName)
+    const order = await dbContext(this.tableName)
       .where({ id })
       .update({
         status: 'sent',
@@ -219,7 +208,7 @@ class Order {
   static async complete(id, trx = null) {
     const dbContext = trx || db;
 
-    const [order] = await dbContext(this.tableName)
+    const order = await dbContext(this.tableName)
       .where({ id })
       .update({
         status: 'completed',
@@ -239,7 +228,7 @@ class Order {
   static async cancel(id, trx = null) {
     const dbContext = trx || db;
 
-    const [order] = await dbContext(this.tableName)
+    const order = await dbContext(this.tableName)
       .where({ id })
       .update({
         status: 'cancelled',
@@ -257,9 +246,21 @@ class Order {
    * @returns {Promise<Object>}
    */
   static async update(id, orderData) {
-    const [order] = await db(this.tableName)
+    // Filtra solo i campi validi per la tabella orders (escludi items)
+    const validFields = ['table_id', 'user_id', 'status', 'covers', 'subtotal', 'cover_charge', 'total', 'notes'];
+    const filteredData = {};
+    
+    for (const key of validFields) {
+      if (orderData[key] !== undefined) {
+        filteredData[key] = orderData[key];
+      }
+    }
+    
+    filteredData.updated_at = db.fn.now();
+
+    const order = await db(this.tableName)
       .where({ id })
-      .update(orderData)
+      .update(filteredData)
       .returning('*');
 
     return order;
@@ -272,6 +273,71 @@ class Order {
    */
   static async delete(id) {
     return db(this.tableName).where({ id }).delete();
+  }
+
+  /**
+   * Trova ordine attivo per tavolo
+   * @param {number} tableId
+   * @returns {Promise<Object|null>}
+   */
+  static async findActiveByTableId(tableId) {
+    const order = await db(this.tableName)
+      .where({ table_id: tableId })
+      .whereIn('status', ['pending', 'sent'])
+      .orderBy('created_at', 'desc')
+      .first();
+
+    if (!order) return null;
+
+    // Carica items
+    const items = await db('order_items')
+      .where('order_id', order.id)
+      .orderBy('created_at', 'asc');
+
+    return {
+      ...order,
+      items
+    };
+  }
+
+  /**
+   * Trova ordine pending per tavolo
+   * @param {number} tableId
+   * @returns {Promise<Object|null>}
+   */
+  static async findPendingByTableId(tableId) {
+    const order = await db(this.tableName)
+      .where({ 
+        table_id: tableId,
+        status: 'pending'
+      })
+      .orderBy('created_at', 'desc')
+      .first();
+
+    if (!order) return null;
+
+    // Carica items
+    const items = await db('order_items')
+      .where('order_id', order.id)
+      .orderBy('created_at', 'asc');
+
+    return {
+      ...order,
+      items
+    };
+  }
+
+  /**
+   * Trova tutti gli ordini per tavolo
+   * @param {number} tableId
+   * @returns {Promise<Array>}
+   */
+  static async findByTableId(tableId) {
+    const orders = await db(this.tableName)
+      .where({ table_id: tableId })
+      .orderBy('created_at', 'desc');
+
+    return orders;
   }
 }
 

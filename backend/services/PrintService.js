@@ -25,6 +25,101 @@ class PrintService {
   }
 
   /**
+   * Stampa singola COMANDA (ticket) per un ordine
+   * @param {Object} order - Ordine completo
+   * @param {Object} command - Comanda con items associati
+   * @returns {Promise<boolean>}
+   */
+  async printCommand(order, command) {
+    if (this.mockMode) {
+      return this.mockPrintCommand(order, command);
+    }
+
+    if (!this.printer) {
+      await this.initialize();
+    }
+
+    try {
+      this.printer.clear();
+
+      // === HEADER ===
+      this.printer.alignCenter();
+      this.printer.setTextSize(1, 1);
+      this.printer.bold(true);
+      this.printer.println('COMANDA');
+      this.printer.bold(false);
+      this.printer.setTextSize(0, 0);
+      this.printer.drawLine();
+      this.printer.newLine();
+
+      // === INFO ===
+      this.printer.alignLeft();
+      this.printer.bold(true);
+      this.printer.println(`Tavolo: ${order.table_number}`);
+      this.printer.println(`Comanda #${command.command_number}`);
+      this.printer.bold(false);
+
+      const date = new Date(command.created_at || order.created_at);
+      this.printer.println(`Ora: ${date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`);
+      this.printer.drawLine();
+      this.printer.newLine();
+
+      // === ITEMS COMANDA ===
+      const items = command.items || [];
+      if (items.length === 0) {
+        this.printer.println('Nessun prodotto');
+      } else {
+        const itemsByCourse = this.groupItemsByCourse(items);
+
+        Object.keys(itemsByCourse).sort().forEach(course => {
+          if (Object.keys(itemsByCourse).length > 1) {
+            this.printer.bold(true);
+            this.printer.println(`--- PORTATA ${course} ---`);
+            this.printer.bold(false);
+          }
+
+          itemsByCourse[course].forEach(item => {
+            const flavors = typeof item.flavors === 'string'
+              ? JSON.parse(item.flavors)
+              : item.flavors;
+
+            // Riga principale: quantità + categoria/nome
+            const label = item.product_name
+              ? `${item.quantity}x ${item.product_name}`
+              : `${item.quantity}x ${item.category}`;
+            this.printer.println(label);
+
+            if (flavors && flavors.length > 0) {
+              this.printer.println(`   ${flavors.join(', ')}`);
+            }
+
+            if (item.custom_note) {
+              this.printer.println(`   >> ${item.custom_note}`);
+            }
+
+            this.printer.newLine();
+          });
+        });
+      }
+
+      this.printer.drawLine();
+      this.printer.newLine();
+      this.printer.alignCenter();
+      this.printer.println('--- FINE COMANDA ---');
+      this.printer.newLine();
+      this.printer.cut();
+
+      await this.printer.execute();
+
+      console.log(`✅ Comanda #${command.command_number} (Ordine #${order.id}) stampata con successo`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Errore stampa comanda (Order #${order.id}, Command #${command.id}):`, error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Inizializza connessione stampante
    */
   async initialize() {
@@ -154,7 +249,7 @@ class PrintService {
       ]);
 
       this.printer.tableCustom([
-        { text: `Coperto (${order.covers}x €1.00):`, align: 'LEFT', width: 0.7 },
+        { text: `Coperto (${order.covers}x €0.20):`, align: 'LEFT', width: 0.7 },
         { text: `€${parseFloat(order.cover_charge).toFixed(2)}`, align: 'RIGHT', width: 0.3 }
       ]);
 
@@ -216,6 +311,33 @@ class PrintService {
     // Simula tempo di stampa
     await new Promise(resolve => setTimeout(resolve, 500));
 
+    return true;
+  }
+
+  /**
+   * Mock print comanda (per testing senza stampante)
+   */
+  async mockPrintCommand(order, command) {
+    console.log('\n' + '='.repeat(50));
+    console.log(`🖨️  MOCK PRINT - COMANDA #${command.command_number} (Ordine #${order.id})`);
+    console.log('='.repeat(50));
+    console.log(`Tavolo: ${order.table_number} | Coperti: ${order.covers}`);
+    console.log(`Items comanda: ${(command.items || []).length}`);
+
+    ;(command.items || []).forEach(item => {
+      const flavors = typeof item.flavors === 'string'
+        ? JSON.parse(item.flavors)
+        : item.flavors;
+      const label = item.product_name
+        ? `${item.quantity}x ${item.product_name}`
+        : `${item.quantity}x ${item.category}`;
+      console.log(`  - ${label}${flavors && flavors.length ? `: ${flavors.join(', ')}` : ''}`);
+      if (item.custom_note) console.log(`    >> ${item.custom_note}`);
+    });
+
+    console.log('='.repeat(50) + '\n');
+
+    await new Promise(resolve => setTimeout(resolve, 300));
     return true;
   }
 

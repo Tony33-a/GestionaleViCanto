@@ -1,472 +1,477 @@
-# Vicanto POS System
+# ViCanto POS
 
-Sistema POS (Point of Sale) completo per la gestione di ristoranti, bar e locali. Il progetto include backend API, frontend, servizio di stampa e display cucina.
+> Sistema gestionale web per gelateria artigianale con gestione ordini in tempo reale, stampa termica e interfaccia multi-dispositivo.
 
-## 📋 Indice
+[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-4-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-- [Prerequisiti](#prerequisiti)
-- [Struttura del Progetto](#struttura-del-progetto)
-- [Installazione](#installazione)
-- [Configurazione](#configurazione)
-  - [Database PostgreSQL](#database-postgresql)
-  - [Variabili d'Ambiente](#variabili-dambiente)
-- [Utilizzo](#utilizzo)
-  - [Avvio Backend](#avvio-backend)
-  - [Migrazioni Database](#migrazioni-database)
-- [API Endpoints](#api-endpoints)
-- [Struttura Database](#struttura-database)
-- [Tecnologie Utilizzate](#tecnologie-utilizzate)
+![ViCanto Dashboard Preview](docs/images/dashboard-preview.png)
 
-## Prerequisiti
+---
 
-Prima di iniziare, assicurati di avere installato:
+## Il Problema
 
-- **Node.js** (v18 o superiore) - [Download](https://nodejs.org/)
-- **npm** (v9 o superiore) - Incluso con Node.js
-- **PostgreSQL** (v12 o superiore) - [Download](https://www.postgresql.org/download/)
-- **Git** - [Download](https://git-scm.com/)
+Le gelaterie artigianali spesso gestiscono gli ordini ai tavoli con metodi tradizionali: carta e penna, comunicazione verbale, calcoli manuali. Questo porta a:
 
-### Verifica Installazione
+- **Errori nelle comande** - Ordini persi o sbagliati
+- **Tempi di attesa lunghi** - Il cameriere deve tornare al banco per ogni ordine
+- **Difficolta nel tracciamento** - Nessuno storico consultabile
+- **Calcoli manuali** - Errori nei conti e lentezza alla cassa
+
+## La Soluzione
+
+**ViCanto POS** digitalizza l'intero flusso operativo:
+
+1. Il cameriere apre il tavolo dal tablet
+2. Inserisce l'ordine selezionando prodotti, gusti e supplementi
+3. Invia la comanda con un tap - la stampante in cucina riceve istantaneamente
+4. Il monitor centrale mostra tutti gli ordini in tempo reale
+5. Alla chiusura, il preconto viene stampato automaticamente
+
+**Risultato**: servizio piu veloce, zero errori, storico completo, reportistica automatica.
+
+---
+
+## Funzionalita Principali
+
+### Per i Camerieri (Tablet)
+- Selezione tavoli con stato visivo (libero/occupato/in attesa)
+- Catalogo prodotti organizzato per categoria
+- Selezione gusti multipli e supplementi
+- Note personalizzate per ogni prodotto
+- Invio comanda con conferma visiva
+- Visualizzazione riepilogo ordine
+
+### Per l'Amministratore (Monitor)
+- Dashboard con KPI in tempo reale (ordini, incasso, scontrino medio)
+- Grafici interattivi (istogramma incassi, torta prodotti venduti)
+- Storico ordini con filtri per data
+- Gestione completa del menu (categorie, prodotti, gusti, supplementi)
+- Gestione camerieri (CRUD utenti)
+- Export report in PDF e Excel
+- Diagnostica stampante
+
+### Sistema di Stampa
+- Stampa termica WiFi automatica
+- Comanda per cucina con dettagli ordine
+- Preconto per cliente con riepilogo completo
+- Coda di stampa con retry automatico
+- Modalita PDF per testing/archivio
+
+### Real-time
+- Sincronizzazione istantanea tra tutti i dispositivi
+- Aggiornamento stato tavoli in tempo reale
+- Notifiche stampa (successo/errore)
+- Lock concorrente sui tavoli (un cameriere alla volta)
+
+---
+
+## Stack Tecnologico
+
+### Backend
+| Tecnologia | Versione | Motivazione |
+|------------|----------|-------------|
+| **Node.js** | 18+ | Runtime JavaScript performante, ideale per I/O asincrono |
+| **Express** | 4.x | Framework minimale e flessibile per API REST |
+| **Socket.IO** | 4.x | Comunicazione bidirezionale real-time affidabile |
+| **PostgreSQL** | 15+ | Database relazionale robusto con supporto JSONB |
+| **Knex.js** | 3.x | Query builder con migrations e transazioni |
+| **JWT** | - | Autenticazione stateless sicura |
+| **Winston** | 3.x | Logging strutturato con rotazione file |
+
+### Frontend
+| Tecnologia | Versione | Motivazione |
+|------------|----------|-------------|
+| **React** | 18 | Libreria UI dichiarativa con hooks moderni |
+| **Vite** | 5.x | Build tool velocissimo con HMR istantaneo |
+| **React Router** | 6 | Routing dichiarativo per SPA |
+| **Zustand** | 4.x | State management minimale e performante |
+| **React Query** | 5.x | Data fetching con cache e sincronizzazione |
+| **jsPDF** | 2.x | Generazione PDF client-side |
+| **SheetJS** | 0.18 | Export Excel nativo |
+
+### Infrastruttura
+| Tecnologia | Utilizzo |
+|------------|----------|
+| **node-thermal-printer** | Driver stampanti ESC/POS |
+| **bcrypt** | Hashing password sicuro |
+| **Helmet** | Security headers HTTP |
+| **express-rate-limit** | Protezione da abusi API |
+
+---
+
+## Architettura
+
+```
++-------------------------------------------------------------------+
+|                         FRONTEND                                   |
+|  +-------------------+              +-------------------+          |
+|  |  Tablet Layout    |              |  Monitor Layout   |          |
+|  |   (Camerieri)     |              |     (Admin)       |          |
+|  +---------+---------+              +---------+---------+          |
+|            |                                  |                    |
+|            +----------------+-----------------+                    |
+|                             |                                      |
+|                    +--------v--------+                             |
+|                    |  React + Vite   |                             |
+|                    |    Zustand      |                             |
+|                    +--------+--------+                             |
++----------------------------|---------------------------------------+
+                             | HTTP + WebSocket
++----------------------------|---------------------------------------+
+|                            |           BACKEND                     |
+|                    +-------v-------+                               |
+|                    |    Express    |                               |
+|                    |   Socket.IO   |                               |
+|                    +-------+-------+                               |
+|                            |                                       |
+|      +---------------------+---------------------+                 |
+|      |                     |                     |                 |
+|      v                     v                     v                 |
+|  +------+           +----------+          +----------+             |
+|  | Auth |           |  Orders  |          |  Print   |             |
+|  | JWT  |           |  Tables  |          |  Queue   |             |
+|  +------+           |  Menu    |          +----+-----+             |
+|                     +----+-----+               |                   |
+|                          |                     |                   |
+|                          v                     v                   |
+|                    +----------+        +--------------+            |
+|                    |PostgreSQL|        |Print Service |            |
+|                    |  Knex.js |        |  (Processo   |            |
+|                    +----------+        |  separato)   |            |
+|                                        +------+-------+            |
++-----------------------------------------------|--------------------+
+                                                | ESC/POS
+                                                v
+                                        +---------------+
+                                        |   Stampante   |
+                                        |   Termica     |
+                                        +---------------+
+```
+
+### Flusso Dati
+
+1. **Apertura Tavolo**: Cameriere seleziona tavolo -> API aggiorna stato -> Socket notifica tutti i client
+2. **Creazione Ordine**: Selezione prodotti -> POST /api/orders -> Transazione DB atomica
+3. **Invio Comanda**: PUT /api/orders/:id/send -> Insert in print_queue -> Print Service processa
+4. **Chiusura**: "Libera tavolo" -> Stampa preconto -> Ordine completato -> Tavolo libero
+
+### Separazione delle Responsabilita
+
+- **Frontend**: Presentazione e interazione utente (nessuna logica di business)
+- **Backend API**: Validazione, business logic, persistenza
+- **Print Service**: Processo indipendente per gestione stampa (fault-tolerant)
+- **Database**: Source of truth per tutti i dati
+
+---
+
+## Installazione
+
+### Prerequisiti
+
+- Node.js 18+ ([download](https://nodejs.org/))
+- PostgreSQL 15+ ([download](https://www.postgresql.org/download/))
+- Git
+
+### 1. Clona il Repository
 
 ```bash
-node --version
-npm --version
-git --version
-psql --version  # Opzionale, verifica PostgreSQL
+git clone https://github.com/tuousername/vicanto-pos.git
+cd vicanto-pos
 ```
+
+### 2. Configura il Database
+
+```bash
+# Crea il database PostgreSQL
+psql -U postgres
+CREATE DATABASE vicanto;
+\q
+```
+
+### 3. Configura le Variabili d'Ambiente
+
+```bash
+# Backend
+cp backend/.env.example backend/.env
+# Modifica backend/.env con le tue credenziali DB
+```
+
+```env
+# backend/.env
+DATABASE_URL=postgres://postgres:password@localhost:5432/vicanto
+JWT_SECRET=your-secret-key-change-in-production
+NODE_ENV=development
+PORT=3000
+```
+
+```bash
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+```env
+# frontend/.env
+VITE_API_URL=http://localhost:3000/api
+VITE_SOCKET_URL=http://localhost:3000
+```
+
+### 4. Installa le Dipendenze
+
+```bash
+# Backend
+cd backend
+npm install
+
+# Frontend
+cd ../frontend
+npm install
+```
+
+### 5. Esegui le Migrations
+
+```bash
+cd backend
+npx knex migrate:latest
+```
+
+### 6. (Opzionale) Popola con Dati di Test
+
+```bash
+cd backend
+npx knex seed:run
+# oppure
+psql -U postgres -d vicanto -f database/seed_official_data.sql
+```
+
+### 7. Avvia l'Applicazione
+
+```bash
+# Terminal 1 - Backend API
+cd backend
+npm start
+
+# Terminal 2 - Frontend
+cd frontend
+npm run dev
+
+# Terminal 3 - Print Service (opzionale)
+cd backend
+npm run print-server:pdf  # Modalita PDF per testing
+```
+
+### 8. Accedi all'Applicazione
+
+- **Frontend**: http://localhost:5173
+- **API**: http://localhost:3000/api
+- **Health Check**: http://localhost:3000/api/health/all
+
+### Credenziali di Test
+
+| Username | PIN | Ruolo |
+|----------|-----|-------|
+| admin | 1234 | Admin |
+| mario | 1111 | Cameriere |
+
+---
+
+## Utilizzo
+
+### Flusso Cameriere (Tablet)
+
+1. **Login** con username e PIN a 4 cifre
+2. **Seleziona un tavolo** dalla griglia
+3. **Inserisci i coperti** (numero di persone)
+4. **Naviga le categorie** (Coni, Coppette, Bevande, etc.)
+5. **Seleziona i prodotti** con gusti e supplementi
+6. **Rivedi l'ordine** nel riepilogo
+7. **Invia la comanda** - stampa automatica in cucina
+8. **Libera il tavolo** quando il cliente paga - stampa preconto
+
+### Flusso Amministratore (Monitor)
+
+1. **Login** come admin
+2. **Dashboard**: visualizza KPI e grafici in tempo reale
+3. **Tavoli**: monitora stato e accedi agli ordini
+4. **Statistiche Ordini**: storico con filtri e dettagli
+5. **Gestione Menu**: modifica categorie, prodotti, gusti
+6. **Gestione Camerieri**: crea/modifica/disattiva utenti
+7. **Export**: scarica report in PDF o Excel
+
+---
+
+## Screenshot
+
+> Le immagini sono placeholder - sostituire con screenshot reali
+
+| Dashboard Admin | Tablet - Selezione Tavoli |
+|-----------------|---------------------------|
+| ![Dashboard](docs/images/dashboard.png) | ![Tavoli](docs/images/tablet-tables.png) |
+
+| Gestione Ordine | Gestione Menu |
+|-----------------|---------------|
+| ![Ordine](docs/images/order.png) | ![Menu](docs/images/menu-management.png) |
+
+---
+
+## API Reference
+
+### Autenticazione
+
+```http
+POST /api/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "pin": "1234"
+}
+```
+
+### Tavoli
+
+```http
+GET    /api/tables          # Lista tutti i tavoli
+GET    /api/tables/:id      # Dettaglio tavolo con ordine attivo
+PUT    /api/tables/:id      # Aggiorna stato tavolo
+PUT    /api/tables/:id/free # Libera tavolo
+```
+
+### Ordini
+
+```http
+GET    /api/orders          # Lista ordini (con filtri ?status=&from=&to=)
+GET    /api/orders/active   # Ordini attivi
+POST   /api/orders          # Crea nuovo ordine
+PUT    /api/orders/:id/send # Invia comanda (trigger stampa)
+PUT    /api/orders/:id/complete # Completa ordine
+DELETE /api/orders/:id      # Elimina ordine
+```
+
+### Menu
+
+```http
+GET    /api/menu/categories  # Tutte le categorie
+POST   /api/menu/categories  # Crea categoria
+PUT    /api/menu/categories/:id
+DELETE /api/menu/categories/:id
+
+GET    /api/menu/products    # Tutti i prodotti
+GET    /api/menu/flavors     # Tutti i gusti
+GET    /api/menu/supplements # Tutti i supplementi
+```
+
+Documentazione completa: [docs/API.md](docs/API.md)
+
+---
+
+## Testing
+
+```bash
+# Health check completo
+curl http://localhost:3000/api/health/all
+
+# Test stampa (modalita mock)
+npm run print-server:mock
+
+# Test Socket.IO
+node backend/test_socket.js
+```
+
+---
 
 ## Struttura del Progetto
 
 ```
 vicanto/
-├── backend/              # Backend API (Node.js/Express)
-│   ├── config/          # File di configurazione
-│   ├── controllers/     # Controller delle route
-│   ├── models/          # Modelli database
-│   ├── routes/          # Definizione route API
-│   ├── middleware/      # Middleware Express
-│   ├── services/        # Servizi (database, etc.)
-│   ├── utils/           # Funzioni utility
-│   ├── tests/           # Test
-│   └── server.js        # Entry point server
-├── frontend/            # Frontend React/Vue (da implementare)
-├── print-service/       # Servizio stampa (da implementare)
-├── kitchen-display/     # Display cucina (da implementare)
-├── database/            # Migrazioni e script database
-│   ├── migrations/      # Migrazioni Knex
-│   └── scripts/         # Script SQL
-├── scripts/             # Script di utilità
-├── docs/                # Documentazione
-└── logs/                # File di log
-```
-
-## Installazione
-
-1. **Clona il repository** (se applicabile):
-   ```bash
-   git clone <repository-url>
-   cd vicanto
-   ```
-
-2. **Installa le dipendenze del backend**:
-   ```bash
-   cd backend
-   npm install
-   ```
-
-## Configurazione
-
-### Database PostgreSQL
-
-1. **Installa PostgreSQL** (se non già installato)
-
-2. **Crea il database**:
-   ```sql
-   -- Accedi a PostgreSQL come superuser
-   psql -U postgres
-   
-   -- Crea il database
-   CREATE DATABASE vicanto_db;
-   
-   -- Esci da psql
-   \q
-   ```
-
-   **Alternativa su Windows** (usando pgAdmin o SQL Shell):
-   - Apri pgAdmin o SQL Shell (psql)
-   - Esegui: `CREATE DATABASE vicanto_db;`
-
-3. **Verifica la connessione**:
-   ```bash
-   psql -U postgres -d vicanto_db
-   ```
-
-### Variabili d'Ambiente
-
-1. **Crea il file `.env` nella cartella `backend/`**:
-   ```bash
-   cd backend
-   # Crea il file .env (PowerShell)
-   New-Item -ItemType File -Path .env
-   ```
-
-2. **Configura le variabili d'ambiente** copiando da `.env.example` o usando questo template:
-
-   ```env
-   # Server Configuration
-   PORT=3000
-   NODE_ENV=development
-
-   # Database Configuration
-   DB_HOST=localhost
-   DB_PORT=5432
-   DB_NAME=vicanto_db
-   DB_USER=postgres
-   DB_PASSWORD=tua_password_postgres
-
-   # JWT Configuration (per autenticazione futura)
-   JWT_SECRET=your_jwt_secret_key_here_change_in_production
-   JWT_EXPIRES_IN=24h
-
-   # API Keys (se necessario)
-   API_KEY=your_api_key_here
-
-   # CORS Configuration
-   CORS_ORIGIN=http://localhost:5173
-
-   # Print Service Configuration
-   PRINT_SERVICE_URL=http://localhost:4000
-
-   # Kitchen Display Configuration
-   KITCHEN_DISPLAY_URL=http://localhost:5000
-   ```
-
-   **⚠️ IMPORTANTE**: 
-   - Modifica `DB_PASSWORD` con la tua password PostgreSQL
-   - Modifica `DB_USER` se usi un utente diverso da `postgres`
-   - In produzione, cambia `JWT_SECRET` con una chiave sicura
-
-## Utilizzo
-
-### Avvio Backend
-
-1. **Dalla cartella backend**:
-   ```bash
-   cd backend
-   npm start
-   ```
-
-   Il server sarà disponibile su: `http://localhost:3000`
-
-2. **Verifica che il server sia attivo**:
-   ```bash
-   # PowerShell
-   Invoke-WebRequest -Uri http://localhost:3000/health
-   
-   # Oppure apri nel browser:
-   # http://localhost:3000/health
-   ```
-
-   Risposta attesa:
-   ```json
-   {
-     "status": "OK",
-     "message": "Backend is running"
-   }
-   ```
-
-### Migrazioni Database
-
-Prima di utilizzare l'applicazione, esegui le migrazioni per creare le tabelle nel database:
-
-1. **Assicurati che PostgreSQL sia in esecuzione**
-
-2. **Verifica la configurazione** in `backend/.env` (vedi sezione [Variabili d'Ambiente](#variabili-dambiente))
-
-3. **Esegui le migrazioni**:
-   ```bash
-   cd backend
-   npm run migrate
-   ```
-
-   Questo creerà tutte le tabelle necessarie:
-   - `users` - Utenti/staff
-   - `categories` - Categorie prodotti
-   - `products` - Prodotti del menu
-   - `tables` - Tavoli del ristorante
-   - `orders` - Ordini
-   - `order_items` - Voci ordine
-
-4. **Rollback migrazione** (se necessario):
-   ```bash
-   npm run migrate:rollback
-   ```
-
-5. **Crea una nuova migrazione**:
-   ```bash
-   npm run migrate:make nome_migrazione
-   ```
-
-## API Endpoints
-
-### Health Check
-
-- **GET** `/health`
-  - Verifica stato server
-  - Risposta: `{ "status": "OK", "message": "Backend is running" }`
-
-- **GET** `/api/health`
-  - Verifica stato API
-  - Risposta: `{ "status": "OK", "message": "API is running" }`
-
-### Products API
-
-Tutti gli endpoint per i prodotti sono disponibili su `/api/products`:
-
-#### GET `/api/products`
-Lista tutti i prodotti
-- **Query Parameters** (opzionali):
-  - `category_id` - Filtra per categoria (integer)
-  - `is_available` - Filtra per disponibilità (`true`/`false`)
-- **Risposta**: `{ "success": true, "count": 10, "data": [...] }`
-
-#### GET `/api/products/:id`
-Ottiene un prodotto specifico per ID
-- **Parameters**: `id` (integer)
-- **Risposta**: `{ "success": true, "data": {...} }`
-- **Errori**: 404 se prodotto non trovato
-
-#### GET `/api/products/barcode/:barcode`
-Ottiene un prodotto per barcode
-- **Parameters**: `barcode` (string)
-- **Risposta**: `{ "success": true, "data": {...} }`
-- **Errori**: 404 se prodotto non trovato
-
-#### POST `/api/products`
-Crea un nuovo prodotto
-- **Body** (JSON):
-  ```json
-  {
-    "name": "Pizza Margherita",
-    "description": "Pizza classica con pomodoro e mozzarella",
-    "category_id": 1,
-    "price": 8.50,
-    "cost": 3.00,
-    "barcode": "1234567890",
-    "sku": "PIZ-MARG-001",
-    "image_url": "https://example.com/pizza.jpg",
-    "is_available": true,
-    "requires_preparation": true,
-    "preparation_time": 15,
-    "display_order": 1,
-    "options": {"size": ["small", "medium", "large"]}
-  }
-  ```
-- **Campi obbligatori**: `name`, `price`
-- **Risposta**: `{ "success": true, "message": "Product created successfully", "data": {...} }`
-- **Errori**: 400 per errori di validazione
-
-#### PUT `/api/products/:id`
-Aggiorna un prodotto esistente
-- **Parameters**: `id` (integer)
-- **Body** (JSON): Tutti i campi sono opzionali, solo quelli forniti vengono aggiornati
-- **Risposta**: `{ "success": true, "message": "Product updated successfully", "data": {...} }`
-- **Errori**: 400 per errori di validazione, 404 se prodotto non trovato
-
-#### DELETE `/api/products/:id`
-Elimina un prodotto (soft delete - imposta `is_available` a `false`)
-- **Parameters**: `id` (integer)
-- **Risposta**: `{ "success": true, "message": "Product deleted successfully" }`
-- **Errori**: 404 se prodotto non trovato
-
-### Altri Endpoints
-
-Gli endpoint per:
-- Gestione ordini (`/api/orders`)
-- Gestione tavoli (`/api/tables`)
-- Gestione categorie (`/api/categories`)
-- Autenticazione (`/api/auth`)
-
-Saranno implementati nei prossimi step.
-
-## Struttura Database
-
-### Tabelle Principali
-
-1. **users** - Utenti e staff del sistema
-   - Ruoli: `admin`, `manager`, `waiter`, `cashier`, `kitchen`
-
-2. **categories** - Categorie prodotti
-   - Esempio: Antipasti, Primi, Secondi, Bevande, Dolci
-
-3. **products** - Prodotti del menu
-   - Prezzo, costo, barcode, immagine
-   - Flag `requires_preparation` per gestione cucina
-
-4. **tables** - Tavoli del ristorante
-   - Status: `available`, `occupied`, `reserved`, `cleaning`
-
-5. **orders** - Ordini
-   - Status: `pending`, `confirmed`, `preparing`, `ready`, `served`, `paid`, `cancelled`
-   - Tipo: `dine_in`, `takeaway`, `delivery`
-
-6. **order_items** - Voci ordine
-   - Quantità, prezzo unitario, totale
-   - Status: `pending`, `preparing`, `ready`, `served`, `cancelled`
-
-## Modelli Disponibili
-
-I modelli si trovano in `backend/models/`:
-
-- **User.js** - Gestione utenti
-- **Category.js** - Gestione categorie
-- **Product.js** - Gestione prodotti
-- **Table.js** - Gestione tavoli
-- **Order.js** - Gestione ordini (con generazione numero ordine automatico)
-- **OrderItem.js** - Gestione voci ordine (con calcolo totale automatico)
-
-### Utilizzo Esempio
-
-```javascript
-const User = require('./models/User');
-
-// Trova tutti gli utenti attivi
-const users = await User.findAll();
-
-// Trova utente per username
-const user = await User.findByUsername('waiter1');
-
-// Crea nuovo utente
-const newUser = await User.create({
-  username: 'waiter1',
-  password_hash: 'hashed_password',
-  first_name: 'Mario',
-  last_name: 'Rossi',
-  role: 'waiter'
-});
-```
-
-## Tecnologie Utilizzate
-
-### Backend
-- **Node.js** - Runtime JavaScript
-- **Express.js** - Framework web
-- **Knex.js** - Query builder e migrazioni
-- **PostgreSQL** - Database relazionale
-- **dotenv** - Gestione variabili d'ambiente
-- **cors** - Cross-Origin Resource Sharing
-
-### Struttura
-- Pattern MVC (Model-View-Controller)
-- Migrazioni database con Knex
-- Middleware per gestione errori
-- Configurazione centralizzata
-
-## Troubleshooting
-
-### Errore connessione database
-
-```
-Database connection error: ...
-```
-
-**Soluzioni**:
-1. Verifica che PostgreSQL sia in esecuzione
-2. Controlla le credenziali in `backend/.env`
-3. Verifica che il database `vicanto_db` esista
-4. Controlla che l'utente PostgreSQL abbia i permessi necessari
-
-### Errore porta già in uso
-
-```
-Error: listen EADDRINUSE: address already in use :::3000
-```
-
-**Soluzioni**:
-1. Cambia `PORT` in `backend/.env`
-2. Oppure termina il processo che usa la porta 3000
-
-### Migrazioni non funzionano
-
-**Verifica**:
-1. Il database esiste e le credenziali sono corrette
-2. L'utente PostgreSQL ha permessi per creare tabelle
-3. Il file `knexfile.js` punta alla directory corretta delle migrazioni
-
-## Prossimi Step
-
-- [ ] Implementazione endpoint API per prodotti
-- [ ] Implementazione endpoint API per ordini
-- [ ] Sistema di autenticazione JWT
-- [ ] Frontend React/Vue
-- [ ] Servizio di stampa
-- [ ] Display cucina
-
-## Licenza
-
-[Inserisci licenza qui]
-
-## Supporto
-
-Per problemi o domande, consulta la documentazione in `docs/` o apri una issue.
-
-## Esempi di Utilizzo API
-
-### Esempio: Creare un prodotto
-
-```bash
-# PowerShell
-$body = @{
-    name = "Pizza Margherita"
-    description = "Pizza classica con pomodoro e mozzarella"
-    category_id = 1
-    price = 8.50
-    cost = 3.00
-    is_available = $true
-    requires_preparation = $true
-    preparation_time = 15
-} | ConvertTo-Json
-
-Invoke-WebRequest -Uri http://localhost:3000/api/products `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body $body
-```
-
-### Esempio: Ottenere tutti i prodotti
-
-```bash
-# PowerShell
-Invoke-WebRequest -Uri http://localhost:3000/api/products -Method GET
-
-# Con filtri
-Invoke-WebRequest -Uri "http://localhost:3000/api/products?category_id=1&is_available=true" -Method GET
-```
-
-### Esempio: Aggiornare un prodotto
-
-```bash
-# PowerShell
-$body = @{
-    price = 9.50
-    description = "Pizza Margherita - prezzo aggiornato"
-} | ConvertTo-Json
-
-Invoke-WebRequest -Uri http://localhost:3000/api/products/1 `
-  -Method PUT `
-  -ContentType "application/json" `
-  -Body $body
+├── backend/
+│   ├── config/           # Configurazioni (DB, JWT, Logger)
+│   ├── controllers/      # Logica business per ogni risorsa
+│   ├── middleware/       # Auth, validation, error handling
+│   ├── models/           # Data access layer (Knex queries)
+│   ├── routes/           # Definizione endpoint API
+│   ├── services/         # Servizi (Print, Queue, etc.)
+│   ├── socket/           # Gestione eventi Socket.IO
+│   └── server.js         # Entry point API
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/   # Componenti React riutilizzabili
+│   │   ├── layouts/      # Layout (Monitor, Tablet)
+│   │   ├── pages/        # Pagine per route
+│   │   ├── services/     # API client e Socket
+│   │   ├── stores/       # Zustand stores
+│   │   └── styles/       # CSS globali
+│   └── vite.config.js
+│
+├── database/
+│   └── migrations/       # Knex migrations
+│
+└── docs/                 # Documentazione aggiuntiva
 ```
 
 ---
 
-**Ultimo aggiornamento**: Database configurato e testato - Sistema completamente operativo! ✅
+## Sviluppi Futuri
 
-**Status Setup**:
-- ✅ Backend server funzionante
-- ✅ Database PostgreSQL configurato e connesso
-- ✅ Migrazioni eseguite (6 tabelle create)
-- ✅ Products API testata e funzionante
-- ✅ CRUD completo operativo
+### Priorita Alta
+- [ ] **PWA Offline** - Funzionamento tablet senza connessione
+- [ ] **Backup automatico** - Scheduled backup database
+- [ ] **Dashboard analytics** - Grafici avanzati e trend
 
-Vedi `SETUP_COMPLETATO.md` per dettagli completi del setup.
+### Priorita Media
+- [ ] **Multi-lingua** - Supporto inglese/tedesco
+- [ ] **Integrazione POS fiscale** - Collegamento registratore di cassa
+- [ ] **Notifiche push** - Avvisi su mobile per nuovi ordini
+
+### Priorita Bassa
+- [ ] **Prenotazioni tavoli** - Sistema booking
+- [ ] **Fidelity card** - Programma punti clienti
+- [ ] **Delivery** - Gestione ordini asporto/consegna
+
+---
+
+## Contribuire
+
+I contributi sono benvenuti! Per contribuire:
+
+1. Fai fork del repository
+2. Crea un branch per la feature (`git checkout -b feature/nuova-funzionalita`)
+3. Committa le modifiche (`git commit -m 'Aggiunge nuova funzionalita'`)
+4. Pusha il branch (`git push origin feature/nuova-funzionalita`)
+5. Apri una Pull Request
+
+Leggi [CONTRIBUTING.md](CONTRIBUTING.md) per le linee guida complete.
+
+---
+
+## Licenza
+
+Questo progetto e distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per dettagli.
+
+---
+
+## Autore
+
+**[Il Tuo Nome]**
+
+- GitHub: [@tuousername](https://github.com/tuousername)
+- LinkedIn: [Il Tuo Profilo](https://linkedin.com/in/tuoprofilo)
+
+---
+
+## Ringraziamenti
+
+- [Express.js](https://expressjs.com/) - Framework web minimale
+- [React](https://reactjs.org/) - Libreria UI
+- [Socket.IO](https://socket.io/) - Real-time engine
+- [jsPDF](https://github.com/parallax/jsPDF) - Generazione PDF
+
+---
+
+<p align="center">
+  Sviluppato con dedizione per digitalizzare il servizio delle gelaterie artigianali
+</p>

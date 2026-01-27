@@ -5,7 +5,9 @@
 
 const PrintQueue = require('../models/PrintQueue');
 const Order = require('../models/Order');
+const Command = require('../models/Command');
 const PrintService = require('./PrintService');
+const PdfPrintService = require('./PdfPrintService');
 const io = require('socket.io-client');
 
 class QueueWatcher {
@@ -15,13 +17,19 @@ class QueueWatcher {
       printerConfig: config.printerConfig || {},
       socketURL: config.socketURL || 'http://localhost:3000',
       authToken: config.authToken || null,
-      mockMode: config.mockMode || false
+      mockMode: config.mockMode || false,
+      pdfMode: config.pdfMode || false
     };
 
-    this.printService = new PrintService({
-      ...this.config.printerConfig,
-      mockMode: this.config.mockMode
-    });
+    // Usa PdfPrintService se in modalità PDF, altrimenti PrintService
+    if (this.config.pdfMode) {
+      this.printService = new PdfPrintService();
+    } else {
+      this.printService = new PrintService({
+        ...this.config.printerConfig,
+        mockMode: this.config.mockMode
+      });
+    }
 
     this.socket = null;
     this.isSocketConnected = false;  // Track real connection state
@@ -221,8 +229,29 @@ class QueueWatcher {
         throw new Error(`Ordine #${job.order_id} non trovato`);
       }
 
-      // Esegui stampa
-      await this.printService.printOrder(order);
+      // Esegui stampa in base al tipo
+      if (job.print_type === 'preconto') {
+        // Stampa PRECONTO (chiusura tavolo)
+        await this.printService.printOrder(order);
+        console.log(`📄 Preconto stampato per ordine #${job.order_id}`);
+      } else if (job.command_id) {
+        // Stampa COMANDA singola (invio comanda)
+        const command = await Command.findById(job.command_id);
+        if (!command) {
+          throw new Error(`Comanda #${job.command_id} non trovata per ordine #${job.order_id}`);
+        }
+
+        await this.printService.printCommand(order, command);
+
+        try {
+          await Command.markPrinted(job.command_id);
+        } catch (markError) {
+          console.warn(`⚠️  Impossibile marcare comanda #${job.command_id} come stampata: ${markError.message}`);
+        }
+      } else {
+        // Fallback: stampa ordine completo
+        await this.printService.printOrder(order);
+      }
 
       // Marca come stampato
       await PrintQueue.markPrinted(job.id);

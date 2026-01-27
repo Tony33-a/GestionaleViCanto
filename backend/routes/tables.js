@@ -31,4 +31,18 @@ router.put('/:id', authenticate, tableController.updateTable);
  */
 router.put('/:id/free', authenticate, tableController.freeTable);
 
+/**
+ * @route   PUT /api/tables/:id/lock
+ * @desc    Lock table for current user
+ * @access  Private
+ */
+router.put('/:id/lock', authenticate, tableController.lockTable);
+
+/**
+ * @route   PUT /api/tables/:id/unlock
+ * @desc    Unlock table
+ * @access  Private
+ */
+router.put('/:id/unlock', authenticate, tableController.unlockTable);
+
 module.exports = router;

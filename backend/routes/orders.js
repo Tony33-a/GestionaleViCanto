@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
 const orderController = require('../controllers/orderController');
+const orderItemController = require('../controllers/orderItemController');
 const { authenticate } = require('../middleware/auth');
 const validateOrderItems = require('../middleware/validateOrderItems');
 
@@ -55,7 +56,27 @@ router.get('/:id', generalLimiter, authenticate, orderController.getOrderById);
  * @desc    Create new order
  * @access  Private
  */
-router.post('/', orderCreationLimiter, authenticate, validateOrderItems, orderController.createOrder);
+router.post('/', (req, res, next) => {
+  console.log('🔍 [ROUTE] POST /api/orders - richiesta ricevuta');
+  console.log('🔍 [ROUTE] POST /api/orders - req.body:', req.body);
+  next();
+}, orderCreationLimiter, (req, res, next) => {
+  console.log('🔍 [RATE LIMITER] orderCreationLimiter - passato');
+  next();
+}, authenticate, (req, res, next) => {
+  console.log('🔍 [AUTH] authenticate - passato');
+  next();
+}, validateOrderItems, (req, res, next) => {
+  console.log('🔍 [VALIDATE] validateOrderItems - passato');
+  next();
+}, orderController.createOrder);
+
+/**
+ * @route   PUT /api/orders/:id
+ * @desc    Update order (items, covers) - only pending orders
+ * @access  Private
+ */
+router.put('/:id', generalLimiter, authenticate, orderController.updateOrder);
 
 /**
  * @route   PUT /api/orders/:id/send
@@ -79,10 +100,24 @@ router.put('/:id/complete', generalLimiter, authenticate, orderController.comple
 router.put('/:id/cancel', generalLimiter, authenticate, orderController.cancelOrder);
 
 /**
+ * @route   PUT /api/orders/:id/items
+ * @desc    Add items to existing order
+ * @access  Private
+ */
+router.put('/:id/items', generalLimiter, authenticate, validateOrderItems, orderItemController.addItemsToOrder);
+
+/**
+ * @route   PUT /api/orders/:id/send-with-items
+ * @desc    Add items and send order in one step
+ * @access  Private
+ */
+router.put('/:id/send-with-items', generalLimiter, authenticate, validateOrderItems, orderItemController.sendOrderWithItems);
+
+/**
  * @route   DELETE /api/orders/:id
  * @desc    Delete order (hard delete)
  * @access  Private
  */
-router.delete('/:id', generalLimiter, authenticate, orderController.deleteOrder);
+// router.delete('/:id', generalLimiter, authenticate, orderController.deleteOrder);
 
 module.exports = router;

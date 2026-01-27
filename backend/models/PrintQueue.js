@@ -64,19 +64,34 @@ class PrintQueue {
 
   /**
    * Crea nuovo job di stampa
-   * @param {number} orderId
-   * @param {string} printerName (opzionale)
+   * @param {number|Object} orderIdOrOptions - orderId o oggetto {order_id, command_id, print_type}
+   * @param {number|null|Object} commandIdOrTrx - commandId o transazione
    * @param {Object} trx - Transazione Knex (opzionale)
    * @returns {Promise<Object>}
    */
-  static async create(orderId, printerName = null, trx = null) {
-    const dbContext = trx || db;
+  static async create(orderIdOrOptions, commandIdOrTrx = null, trx = null) {
+    let orderId, commandId, printType, dbContext;
+
+    // Supporta sia create(orderId, commandId, trx) che create({order_id, command_id, print_type}, trx)
+    if (typeof orderIdOrOptions === 'object' && orderIdOrOptions !== null) {
+      orderId = orderIdOrOptions.order_id;
+      commandId = orderIdOrOptions.command_id || null;
+      printType = orderIdOrOptions.print_type || 'comanda';
+      dbContext = commandIdOrTrx || db;
+    } else {
+      orderId = orderIdOrOptions;
+      commandId = commandIdOrTrx;
+      printType = 'comanda';
+      dbContext = trx || db;
+    }
 
     const [job] = await dbContext(this.tableName)
       .insert({
         order_id: orderId,
+        command_id: commandId,
+        print_type: printType,
         status: 'pending',
-        printer_name: printerName,
+        printer_name: null,
         attempts: 0,
         max_attempts: 3,
         created_at: dbContext.fn.now()
@@ -197,6 +212,31 @@ class PrintQueue {
    */
   static async delete(id) {
     return db(this.tableName).where({ id }).delete();
+  }
+
+  /**
+   * Crea job di stampa preconto
+   * @param {number} orderId
+   * @param {Object} trx - Transazione Knex (opzionale)
+   * @returns {Promise<Object>}
+   */
+  static async createPreconto(orderId, trx = null) {
+    const dbContext = trx || db;
+
+    const [job] = await dbContext(this.tableName)
+      .insert({
+        order_id: orderId,
+        status: 'pending',
+        print_type: 'preconto',
+        printer_name: null,
+        attempts: 0,
+        max_attempts: 3,
+        created_at: dbContext.fn.now()
+      })
+      .returning('*');
+
+    console.log(`🧾 [PRINT] Creato job stampa preconto per ordine #${orderId}`);
+    return job;
   }
 }
 

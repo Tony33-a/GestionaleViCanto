@@ -7,8 +7,11 @@
 
 const jwt = require('jsonwebtoken');
 const jwtConfig = require('../config/jwt');
+const { initializeEventBatcher } = require('./events');
 
 module.exports = (io) => {
+  // Inizializza l'event batcher
+  initializeEventBatcher(io);
   // Middleware per autenticazione Socket.IO
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;

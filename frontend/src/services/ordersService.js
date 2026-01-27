@@ -10,7 +10,18 @@ const ordersService = {
    * @returns {Promise<Object>}
    */
   async create(orderData) {
+    console.log('🔍 [STEP 10] ordersService.create chiamato con:', orderData);
+    console.log('🔍 [STEP 10] Tipi dati in service:', {
+      table_id: typeof orderData.table_id,
+      covers: typeof orderData.covers,
+      status: typeof orderData.status,
+      items: typeof orderData.items,
+      itemsLength: orderData.items?.length
+    });
+    
     const response = await api.post('/orders', orderData)
+    console.log('🔍 [STEP 11] Response status:', response.status);
+    console.log('🔍 [STEP 11] Response data:', response.data);
     return response.data.data
   },
 
@@ -64,11 +75,21 @@ const ordersService = {
   },
 
   /**
-   * Cancella ordine
+   * Cancella ordine (cambia stato a cancelled)
    * @param {number} id
    * @returns {Promise<Object>}
    */
   async cancel(id) {
+    const response = await api.put(`/orders/${id}/cancel`)
+    return response.data.data
+  },
+
+  /**
+   * Elimina ordine (hard delete)
+   * @param {number} id
+   * @returns {Promise<Object>}
+   */
+  async delete(id) {
     const response = await api.delete(`/orders/${id}`)
     return response.data
   },
@@ -81,6 +102,17 @@ const ordersService = {
    */
   async update(id, data) {
     const response = await api.put(`/orders/${id}`, data)
+    return response.data.data
+  },
+
+  /**
+   * Aggiungi items a ordine esistente (per comande aggiuntive)
+   * @param {number} id
+   * @param {Array} items - Array di items da aggiungere
+   * @returns {Promise<Object>}
+   */
+  async addItems(id, items) {
+    const response = await api.put(`/orders/${id}/items`, { items })
     return response.data.data
   }
 }

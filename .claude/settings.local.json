@@ -19,7 +19,15 @@
       "Bash(ipconfig:*)",
       "Bash(git push:*)",
       "Bash(git remote:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run dev:*)",
+      "Bash(gh auth status:*)",
+      "Bash(where:*)",
+      "Bash(winget install:*)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth login --web -h github.com)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create GestionaleViCanto --public --description \"Sistema gestionale web per gelateria artigianale con gestione ordini real-time, stampa termica e interfaccia multi-dispositivo\" --source=. --push)"
     ]
   }
 }
