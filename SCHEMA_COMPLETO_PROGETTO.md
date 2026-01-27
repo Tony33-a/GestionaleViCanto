@@ -25,6 +25,21 @@
 
 ---
 
+## 📦 REPOSITORY GITHUB
+
+- **Nome repo:** GestionaleViCanto
+- **URL:** https://github.com/Tony33-a/GestionaleViCanto
+- **Percorso locale:** C:\Users\casuc\Desktop\vicanto
+- **Branch principale:** main
+
+### Regole di versionamento
+- Ogni modifica strutturale → commit
+- Ogni nuova funzionalità → commit dedicato
+- Commit piccoli e descrittivi
+- Formato: `tipo(scope): descrizione` (Conventional Commits)
+
+---
+
 ## 🗂️ STRUTTURA PROGETTO
 
 ```
