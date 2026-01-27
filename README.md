@@ -456,10 +456,10 @@ Questo progetto e distribuito sotto licenza MIT. Vedi [LICENSE](LICENSE) per det
 
 ## Autore
 
-**[Il Tuo Nome]**
+**Anthony Casuccio**
 
-- GitHub: [@tuousername](https://github.com/tuousername)
-- LinkedIn: [Il Tuo Profilo](https://linkedin.com/in/tuoprofilo)
+- GitHub: [@Tony-a](https://github.com/tuousername)
+
 
 ---
 
