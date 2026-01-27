@@ -415,25 +415,6 @@ vicanto/
 
 ---
 
-## Sviluppi Futuri
-
-### Priorita Alta
-- [ ] **PWA Offline** - Funzionamento tablet senza connessione
-- [ ] **Backup automatico** - Scheduled backup database
-- [ ] **Dashboard analytics** - Grafici avanzati e trend
-
-### Priorita Media
-- [ ] **Multi-lingua** - Supporto inglese/tedesco
-- [ ] **Integrazione POS fiscale** - Collegamento registratore di cassa
-- [ ] **Notifiche push** - Avvisi su mobile per nuovi ordini
-
-### Priorita Bassa
-- [ ] **Prenotazioni tavoli** - Sistema booking
-- [ ] **Fidelity card** - Programma punti clienti
-- [ ] **Delivery** - Gestione ordini asporto/consegna
-
----
-
 ## Contribuire
 
 I contributi sono benvenuti! Per contribuire:
