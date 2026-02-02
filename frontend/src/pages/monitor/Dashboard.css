@@ -223,8 +223,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
   background: #3b82f6;
   color: white;
   border-radius: 50%;
@@ -366,11 +366,11 @@
 .closed-tables-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .orders-section {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .orders-section h3 {
@@ -385,14 +385,14 @@
 /* Layout a colonne per tavoli chiusi */
 .table-headers {
   display: grid;
-  grid-template-columns: 1fr 80px 80px 120px 100px 60px;
-  gap: 12px;
-  padding: 12px 14px;
+  grid-template-columns: 140px 70px 70px 100px 80px 50px;
+  gap: 8px;
+  padding: 10px 12px;
   background: #f3f4f6;
   border-radius: 8px;
   font-weight: 600;
   color: #374151;
-  font-size: 14px;
+  font-size: 13px;
   border-bottom: 2px solid #e5e7eb;
 }
 
@@ -474,25 +474,28 @@
 .order-detail-enhanced {
   background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
   border: 2px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 24px;
-  margin-top: 24px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 500px;
 }
 
 .order-detail-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .order-detail-header h4 {
   color: #111827;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 600;
+  margin: 0;
 }
 
 .close-detail-btn {
@@ -500,9 +503,9 @@
   color: white;
   border: none;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  font-size: 16px;
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -514,26 +517,27 @@
 
 .order-detail-info {
   background: #f3f4f6;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
 
 .order-detail-info p {
   color: #374151;
   margin: 0;
+  font-size: 13px;
 }
 
 .order-item-enhanced {
   background: #ffffff;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 8px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
 .order-item-enhanced:hover {
@@ -545,39 +549,73 @@
   font-weight: 500;
   color: #111827;
   flex: 1;
+  font-size: 13px;
 }
 
 .item-quantity {
   background: #f3f4f6;
   color: #374151;
-  padding: 4px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-weight: 600;
-  margin: 0 8px;
+  margin: 0 6px;
+  font-size: 12px;
 }
 
 .item-price {
   font-weight: 600;
   color: #059669;
+  font-size: 13px;
 }
 
 .order-total-enhanced {
   background: linear-gradient(135deg, #059669 0%, #047857 100%);
   color: white;
-  padding: 16px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 6px;
   text-align: center;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .page-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 16px;
   background-color: #f1f5f9;
   min-height: 100%;
+}
+
+/* Layout a due colonne per ordini */
+.orders-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Prima colonna: ordini chiusi, seconda: ordini aperti */
+.orders-grid > .orders-section:first-child {
+  order: 2;
+}
+
+.orders-grid > .orders-section:last-child {
+  order: 1;
+}
+
+@media (max-width: 1024px) {
+  .orders-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Su mobile, aperti prima poi chiusi */
+  .orders-grid > .orders-section:first-child {
+    order: 1;
+  }
+
+  .orders-grid > .orders-section:last-child {
+    order: 2;
+  }
 }
 
 .page-header {
@@ -1189,9 +1227,9 @@
 
 .table-row {
   display: grid;
-  grid-template-columns: 1fr 80px 80px 120px 100px 60px;
-  gap: 12px;
-  padding: 12px 14px;
+  grid-template-columns: 140px 70px 70px 100px 80px 50px;
+  gap: 8px;
+  padding: 10px 12px;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;

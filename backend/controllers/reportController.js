@@ -121,7 +121,13 @@ const getOrdersHistory = async (req, res) => {
       query = query.where('orders.created_at', '<', toDate);
     }
     if (status) {
-      query = query.where('orders.status', status);
+      // Supporta valori multipli separati da virgola (es: 'pending,sent')
+      const statusArray = status.split(',').map(s => s.trim());
+      if (statusArray.length > 1) {
+        query = query.whereIn('orders.status', statusArray);
+      } else {
+        query = query.where('orders.status', status);
+      }
     }
 
     const orders = await query.limit(parseInt(limit)).offset(parseInt(offset));
@@ -134,7 +140,14 @@ const getOrdersHistory = async (req, res) => {
       toDate.setDate(toDate.getDate() + 1);
       countQuery = countQuery.where('created_at', '<', toDate);
     }
-    if (status) countQuery = countQuery.where('status', status);
+    if (status) {
+      const statusArray = status.split(',').map(s => s.trim());
+      if (statusArray.length > 1) {
+        countQuery = countQuery.whereIn('status', statusArray);
+      } else {
+        countQuery = countQuery.where('status', status);
+      }
+    }
     
     const totalCount = await countQuery.first();
 

@@ -9,11 +9,16 @@ const path = require('path');
 
 class PdfPrintService {
   constructor(config = {}) {
-    this.outputDir = config.outputDir || path.join(__dirname, '..', 'prints');
-    
-    // Crea directory se non esiste
-    if (!fs.existsSync(this.outputDir)) {
-      fs.mkdirSync(this.outputDir, { recursive: true });
+    this.baseDir = config.outputDir || path.join(__dirname, '..', 'prints');
+    this.comandeDir = path.join(this.baseDir, 'comande');
+    this.precontiDir = path.join(this.baseDir, 'preconti');
+
+    // Crea directory se non esistono
+    if (!fs.existsSync(this.comandeDir)) {
+      fs.mkdirSync(this.comandeDir, { recursive: true });
+    }
+    if (!fs.existsSync(this.precontiDir)) {
+      fs.mkdirSync(this.precontiDir, { recursive: true });
     }
   }
 
@@ -26,7 +31,7 @@ class PdfPrintService {
    */
   async printCommand(order, command) {
     const filename = `comanda_${order.id}_${command.command_number}_${Date.now()}.pdf`;
-    const filepath = path.join(this.outputDir, filename);
+    const filepath = path.join(this.comandeDir, filename);
 
     return new Promise((resolve, reject) => {
       try {
@@ -109,7 +114,7 @@ class PdfPrintService {
    */
   async printOrder(order) {
     const filename = `preconto_${order.id}_${Date.now()}.pdf`;
-    const filepath = path.join(this.outputDir, filename);
+    const filepath = path.join(this.precontiDir, filename);
 
     return new Promise((resolve, reject) => {
       try {
@@ -224,7 +229,8 @@ class PdfPrintService {
 
   async initialize() {
     console.log('📄 PDF Print Service inizializzato');
-    console.log(`   Output directory: ${this.outputDir}`);
+    console.log(`   Comande: ${this.comandeDir}`);
+    console.log(`   Preconti: ${this.precontiDir}`);
     return true;
   }
 

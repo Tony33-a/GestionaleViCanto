@@ -11,7 +11,7 @@ import MonitorMenuManagement from '../pages/monitor/MenuManagement'
 import TabletOrder from '../pages/tablet/Order'
 import CategoryProducts from '../pages/tablet/CategoryProducts'
 import MonitorWaiters from '../pages/monitor/Waiters'
-import MonitorSettings from '../pages/monitor/Settings'
+import PrinterDiagnostics from '../pages/monitor/PrinterDiagnostics'
 import '../styles/MonitorLayout.css'
 
 function MonitorLayout() {
@@ -123,7 +123,7 @@ function MonitorLayout() {
           <Route path="/statistics" element={<MonitorDashboard />} />
           <Route path="/menu-management" element={<MonitorMenuManagement />} />
           <Route path="/waiters" element={<MonitorWaiters />} />
-          <Route path="/printer" element={<MonitorSettings />} />
+          <Route path="/printer" element={<PrinterDiagnostics />} />
         </Routes>
       </main>
     </div>

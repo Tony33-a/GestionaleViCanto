@@ -90,5 +90,6 @@ router.use('/orders', require('./orders'));
 router.use('/reports', require('./reports')); // Dashboard e report admin
 router.use('/users', require('./users')); // Gestione utenti/camerieri
 router.use('/product-supplements', require('./productSupplements')); // Associazioni prodotto-supplemento
+router.use('/printer', require('./printer')); // Diagnostica stampante
 
 module.exports = router;

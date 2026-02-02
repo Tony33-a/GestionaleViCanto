@@ -361,10 +361,12 @@ function DashboardOrders() {
         )}
       </div>
 
-      {/* Ordini Aperti */}
-      <div className="orders-section">
-        <h3>🟢 Ordini Aperti</h3>
-        <div className="orders-list">
+      {/* Layout a due colonne */}
+      <div className="orders-grid">
+        {/* Ordini Aperti */}
+        <div className="orders-section">
+          <h3>🟢 Ordini Aperti</h3>
+          <div className="orders-list">
           {/* Intestazioni colonne */}
           <div className="table-headers table-headers-open">
             <div className="header-table">Ordine</div>
@@ -450,13 +452,13 @@ function DashboardOrders() {
               )}
             </React.Fragment>
           ))}
+          </div>
         </div>
-      </div>
 
-      {/* Ordini Chiusi */}
-      <div className="orders-section">
-        <h3>✅ Ordini Chiusi</h3>
-        <div className="orders-list">
+        {/* Ordini Chiusi */}
+        <div className="orders-section">
+          <h3>✅ Ordini Chiusi</h3>
+          <div className="orders-list">
           {/* Intestazioni colonne */}
           <div className="table-headers table-headers-closed">
             <div className="header-table">Ordine</div>
@@ -541,6 +543,7 @@ function DashboardOrders() {
               )}
             </React.Fragment>
           ))}
+          </div>
         </div>
       </div>
     </div>
